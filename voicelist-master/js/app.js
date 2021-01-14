@@ -7,29 +7,46 @@ const CHECK = "fa-check-circle";
 const UNCHECK = "fa-circle-thin";
 const LINE_THROUGH = "lineThrough";
 
-let LIST, id;
+let LIST
+let id;
 
-let data = localStorage.getItem("TODO");
+async function getDatabaseItems(){
+    const response = await fetch('http://localhost:8080/items');
+    const json = await response.json();
+    console.log(json);
+    return json;
+    
+}
 
-if(data){
-    LIST = JSON.parse(data);
-    id = LIST.length;
-    loadList(LIST);
-}
-else{
-    LIST = [];
-    id = 0;
-}
+const data = getDatabaseItems().then((data) => {
+    if(data){
+        LIST = data;
+        id = LIST.length;
+        console.log(LIST)
+        loadList(LIST);
+    }
+    else{
+        LIST = [];
+        id = 0;
+    }
+});
 
 function loadList(array){
     array.forEach(function(item){
-        addToDo(item.name, item.id, item.done, item.trash);
+        addToDo(item.title, item.id, item.done, item.trash);
     })
 }
 
-clear.addEventListener("click", function(){
-    localStorage.clear();
-    location.reload();
+clear.addEventListener("click", function(event){
+    const refreshIcon = event.target;
+    const ul = refreshIcon.parentNode.parentNode.parentNode.children[1].children[0];
+    console.log(ul);
+    /*
+    for(let i = 1; i < LIST.length+1; i++){
+        removeToDo()
+    }
+    */
+    //location.reload();
 })
 
 const options = {weekday: "long", month: "short", day: "numeric"};
@@ -44,7 +61,7 @@ function addToDo(toDo, id, done, trash){
     const item = `
         <li class="item">
         <i class="fa ${DONE} co" job="complete" id="${id}"></i>
-        <button class ="btn btn-format" style="font-size:24px">edit<!--<i class = "fa fa-pencil edit" job = "edit" id = "${id}"></i>--></button>
+        <button class ="btn btn-format" style="font-size:24px" id="${id}">edit</button>
         <i class="fa fa-trash-o de" job="delete" id="${id}"></i>
         <p class="text ${LINE}">${toDo}</p>
         </li>
@@ -59,19 +76,37 @@ document.addEventListener("keyup", function(event){
     if(event.keyCode == 13){
         const toDo = input.value;
         if(toDo){
+            todoItem = {
+                title: toDo,
+                body: "body"
+            }
+            postData("http://localhost:8080/items", todoItem)
             addToDo(toDo, id, false, false);
             LIST.push({
-                name: toDo,
+                title: toDo,
                 id: id,
                 done: false,
                 trash: false
             });
-            localStorage.setItem("TODO", JSON.stringify(LIST));
+            
             id++;
         }
         input.value = "";
     }
 });
+
+async function postData(url, data) {
+    await fetch(url, {
+      method: 'POST', // *GET, POST, PUT, DELETE, etc.
+      headers: {
+        'Content-Type': 'application/json'
+        // 'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: JSON.stringify(data) // body data type must match "Content-Type" header
+    });
+    
+}
+  
 
 function completeToDo(element){
     element.classList.toggle(CHECK);
@@ -83,35 +118,24 @@ function completeToDo(element){
 
 function removeToDo(element){
     element.parentNode.parentNode.removeChild(element.parentNode);
-
-    LIST[element.id].trash = true;
+    const data = {
+        title: "title",
+        body: "body"
+    }
+    deleteData(`http://localhost:8080/items/${element.id}`, data);
+    
 }
-
-function editToDo(element){
-
-    console.log("it works!");
-    
-
-    const editItem = `
-        <li class="item">
-        <input job = "edit-box" type="text" id="edit-input" placeholder="Edit to-do" />
-        </li>
-    `;
-    const position = "beforeend";
-    list.insertAdjacentHTML(position, editItem);
-    
-    let editBox = document.querySelector('#edit-input');
-    editBox.addEventListener('keyup', () => {
-        if(event.keyCode == 13){
-            const toDo = editBox.value;
-            console.log(toDo);
-            LIST[element.name] = toDo;
-        }
+async function deleteData(url, data) {
+    await fetch(url, {
+      method: 'DELETE', // *GET, POST, PUT, DELETE, etc.
+      headers: {
+        'Content-Type': 'application/json'
+        // 'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: JSON.stringify(data) // body data type must match "Content-Type" header
     });
-
-
+    
 }
-
 
 
 let val = 0;
@@ -136,10 +160,8 @@ list.addEventListener("click", function(event){
     
     const editBtn = event.target;
     console.log(editBtn);
-    
-    
         
-    if(editBtn.getAttribute("class") === 'btn') {
+    if(editBtn.getAttribute("class") === 'btn btn-format') {
         if(editBtn.textContent === 'edit')
         {
             console.log("test btn");
@@ -153,13 +175,15 @@ list.addEventListener("click", function(event){
             input.type = 'text';
             input.value = para.textContent;
             console.log("start");
-            li.firstElementChild.insertBefore(input, para);
+            console.log(element.id);
+            li.children[element.id - 1].insertBefore(input, para);
             val = input;
             console.log(input.value);
-            li.firstElementChild.removeChild(para);
+            li.children[element.id - 1].removeChild(para);
             console.log("finish");
             editBtn.textContent = 'save';
             console.log("done");
+            
         } 
         else if(editBtn.textContent === 'save') {
             console.log("running");
@@ -172,6 +196,13 @@ list.addEventListener("click", function(event){
             li.insertBefore(para2, input);
             li.removeChild(input);
             editBtn.textContent = 'edit';
+            console.log(element.id);
+            const data = {
+                title: input.value,
+                body: "body"
+            }
+            console.log(data.title)
+            editData(`http://localhost:8080/items/${element.id}`, data)
 
         }
     }
@@ -180,5 +211,17 @@ list.addEventListener("click", function(event){
     else if(elementJob == "delete"){
         removeToDo(element);
     }
-    localStorage.setItem("TODO", JSON.stringify(LIST));
+
 });
+
+async function editData(url, data) {
+    await fetch(url, {
+      method: 'PUT', // *GET, POST, PUT, DELETE, etc.
+      headers: {
+        'Content-Type': 'application/json'
+        // 'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: JSON.stringify(data) // body data type must match "Content-Type" header
+    });
+    
+}
