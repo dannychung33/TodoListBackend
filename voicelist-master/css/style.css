@@ -121,11 +121,27 @@ button.btn {
   font-size: 25px;
   right: 40px;
   top: 10px;
+  color: #fff !important;
+  text-decoration: none;
+  background: #60a3bc;
+  border-radius: 50px;
+  display: inline-block;
+  border: none;
+  transition: all 0.4s ease 0s;
+}
+
+.btn:hover {
+  text-shadow: 0px 0px 6px rgba(255, 255, 255, 1);
+  -webkit-box-shadow: 0px 5px 40px -10px rgba(0, 0, 0, 0.57);
+  -moz-box-shadow: 0px 5px 40px -10px rgba(0, 0, 0, 0.57);
+  transition: all 0.4s ease 0s;
 }
 
 button.btn-format {
   height: 30px;
-  width: 50px;
+  width: 60px;
+  line-height: 30px;
+  box-sizing: border-box;
 }
 
 #edit-input {
@@ -134,7 +150,7 @@ button.btn-format {
   margin: 0;
   font-size: 20px;
   left: 50px;
-  top: 5px;
+  top: 10px;
   background-color: #fff;
   width: 225px;
   max-width: 250px;
