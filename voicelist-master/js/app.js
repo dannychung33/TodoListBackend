@@ -21,20 +21,24 @@ async function getDatabaseItems(){
 const data = getDatabaseItems().then((data) => {
     if(data){
         LIST = data;
-        id = LIST.length;
-        console.log(LIST)
+        //id = LIST.length;
+        console.log(id);
+        console.log(LIST);
         loadList(LIST);
     }
-    else{
-        LIST = [];
-        id = 0;
-    }
+   
 });
 
 function loadList(array){
+    let idList = [];
+    let i = 0;
     array.forEach(function(item){
-        addToDo(item.title, item.id, item.done, item.trash);
+        addToDo(item.title, i+1, item.done);
+        idList[i] = item.id;
+        i++;
     })
+    console.log(idList)
+    return idList;
 }
 
 clear.addEventListener("click", function(event){
@@ -53,9 +57,13 @@ const options = {weekday: "long", month: "short", day: "numeric"};
 const today = new Date();
 dateElement.innerHTML = today.toLocaleDateString("en-US", options);
 
-function addToDo(toDo, id, done, trash){
-    if(trash){return; }
-
+function addToDo(toDo, id, done){
+    if(done == 0){
+        done = false;
+    }
+    else{
+        done = true;
+    }
     const DONE = done ? CHECK : UNCHECK;
     const LINE = done ? LINE_THROUGH : "";
     const item = `
@@ -63,7 +71,7 @@ function addToDo(toDo, id, done, trash){
         <i class="fa ${DONE} co" job="complete" id="${id}"></i>
         <button class ="btn btn-format" style="font-size:24px" id="${id}">edit</button>
         <i class="fa fa-trash-o de" job="delete" id="${id}"></i>
-        <p class="text ${LINE}">${toDo}</p>
+        <p class="text ${LINE}">${toDo}</p> 
         </li>
     `;
     const position = "beforeend";
@@ -75,21 +83,15 @@ document.addEventListener("keyup", function(event){
     
     if(event.keyCode == 13){
         const toDo = input.value;
+        const done = 0;
         if(toDo){
             todoItem = {
                 title: toDo,
-                body: "body"
+                done: done,
+                
             }
             postData("http://localhost:8080/items", todoItem)
-            addToDo(toDo, id, false, false);
-            LIST.push({
-                title: toDo,
-                id: id,
-                done: false,
-                trash: false
-            });
-            
-            id++;
+            addToDo(toDo, LIST.length+1, done);
         }
         input.value = "";
     }
@@ -109,30 +111,36 @@ async function postData(url, data) {
   
 
 function completeToDo(element){
+    
     element.classList.toggle(CHECK);
     element.classList.toggle(UNCHECK);
+    console.log(element.parentNode);
     element.parentNode.querySelector(".text").classList.toggle(LINE_THROUGH);
-
-    LIST[element.id].done = LIST[element.id].done ? false : true;
-}
-
-function removeToDo(element){
-    element.parentNode.parentNode.removeChild(element.parentNode);
-    const data = {
-        title: "title",
-        body: "body"
+    console.log(element.getAttribute("class"))
+    let done = 0;
+    if(element.getAttribute("class") === "fa co " + CHECK){
+        done = 1;
     }
-    deleteData(`http://localhost:8080/items/${element.id}`, data);
     
+    console.log(element.parentNode.lastElementChild.textContent);
+    const title = element.parentNode.lastElementChild.textContent;
+    dataObj = {
+        title: title,
+        done: done
+    }
+    console.log(dataObj.done)
+    editData(`http://localhost:8080/items/${element.id}`, dataObj)
 }
-async function deleteData(url, data) {
+
+async function removeToDo(element){
+    element.parentNode.parentNode.removeChild(element.parentNode);
+    deleteData(`http://localhost:8080/items/${element.id}`);
+    //location.reload();
+}
+async function deleteData(url) {
     await fetch(url, {
       method: 'DELETE', // *GET, POST, PUT, DELETE, etc.
-      headers: {
-        'Content-Type': 'application/json'
-        // 'Content-Type': 'application/x-www-form-urlencoded',
-      },
-      body: JSON.stringify(data) // body data type must match "Content-Type" header
+      
     });
     
 }
@@ -154,7 +162,7 @@ list.addEventListener("click", function(event){
     }
 
     if(elementJob == "complete"){
-        completeToDo(element);
+        completeToDo(element, event);
     }
 
     
@@ -162,24 +170,26 @@ list.addEventListener("click", function(event){
     console.log(editBtn);
         
     if(editBtn.getAttribute("class") === 'btn btn-format') {
+
         if(editBtn.textContent === 'edit')
         {
+            para = editBtn.parentNode.lastElementChild;
             console.log("test btn");
-            const para = editBtn.parentNode.lastElementChild;
             const li = editBtn.parentNode.parentNode;
             console.log(para);
             console.log(li);
             console.log(para.textContent);
+            const elementIndex = (element.id-1);
             const input = document.createElement('input');
             input.id = "edit-input";
             input.type = 'text';
             input.value = para.textContent;
             console.log("start");
-            console.log(element.id);
-            li.children[element.id - 1].insertBefore(input, para);
+            console.log(elementIndex);
+            li.children[elementIndex].insertBefore(input, para);
             val = input;
             console.log(input.value);
-            li.children[element.id - 1].removeChild(para);
+            li.children[elementIndex].removeChild(para);
             console.log("finish");
             editBtn.textContent = 'save';
             console.log("done");
@@ -190,18 +200,25 @@ list.addEventListener("click", function(event){
             const li = editBtn.parentNode;
             const input = val;
             console.log(val);
-            const para2 = document.createElement('p');
-            para2.textContent = input.value;
-            para2.id = "edit-input";
-            li.insertBefore(para2, input);
+            
+            para.textContent = input.value;
+            let done = false;
+            if(LIST[element.id] == 1){
+                done = true;
+            }
+            console.log(LIST[element.id-1].done)
+            const LINE = done ? LINE_THROUGH : "";
+            para.class = "text " + LINE;
+            li.insertBefore(para, input);
             li.removeChild(input);
             editBtn.textContent = 'edit';
             console.log(element.id);
             const data = {
                 title: input.value,
-                body: "body"
+                done: LIST[element.id-1].done
             }
             console.log(data.title)
+            console.log(LIST[element.id-1].done)
             editData(`http://localhost:8080/items/${element.id}`, data)
 
         }
