@@ -7,7 +7,7 @@ const CHECK = "fa-check-circle";
 const UNCHECK = "fa-circle-thin";
 const LINE_THROUGH = "lineThrough";
 
-let LIST
+let LIST = [];
 let id;
 
 async function getDatabaseItems(){
@@ -33,7 +33,7 @@ function loadList(array){
     let idList = [];
     let i = 0;
     array.forEach(function(item){
-        addToDo(item.title, i+1, item.done);
+        addToDo(item.title, LIST[i].id, item.done);
         idList[i] = item.id;
         i++;
     })
@@ -206,7 +206,7 @@ list.addEventListener("click", function(event){
             if(LIST[element.id] == 1){
                 done = true;
             }
-            console.log(LIST[element.id-1].done)
+            
             const LINE = done ? LINE_THROUGH : "";
             para.class = "text " + LINE;
             li.insertBefore(para, input);
