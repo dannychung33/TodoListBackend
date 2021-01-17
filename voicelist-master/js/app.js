@@ -18,6 +18,10 @@ async function getDatabaseItems(){
     
 }
 
+function getLastTitle(){
+
+}
+
 const data = getDatabaseItems().then((data) => {
     if(data){
         LIST = data;
@@ -135,7 +139,9 @@ function completeToDo(element){
 async function removeToDo(element){
     element.parentNode.parentNode.removeChild(element.parentNode);
     deleteData(`http://localhost:8080/items/${element.id}`);
-    //location.reload();
+    location.reload();
+    //const title = element.parentNode.lastElementChild.textContent;
+    
 }
 async function deleteData(url) {
     await fetch(url, {
@@ -166,16 +172,16 @@ list.addEventListener("click", function(event){
     }
 
     
-    const editBtn = event.target;
-    console.log(editBtn);
+    //const editBtn = event.target;
+    //console.log(editBtn);
         
-    if(editBtn.getAttribute("class") === 'btn btn-format') {
+    if(element.getAttribute("class") === 'btn btn-format') {
 
-        if(editBtn.textContent === 'edit')
+        if(element.textContent === 'edit')
         {
-            para = editBtn.parentNode.lastElementChild;
+            para = element.parentNode.lastElementChild;
             console.log("test btn");
-            const li = editBtn.parentNode.parentNode;
+            const li = element.parentNode.parentNode;
             console.log(para);
             console.log(li);
             console.log(para.textContent);
@@ -191,13 +197,13 @@ list.addEventListener("click", function(event){
             console.log(input.value);
             li.children[elementIndex].removeChild(para);
             console.log("finish");
-            editBtn.textContent = 'save';
+            element.textContent = 'save';
             console.log("done");
             
         } 
-        else if(editBtn.textContent === 'save') {
+        else if(element.textContent === 'save') {
             console.log("running");
-            const li = editBtn.parentNode;
+            const li = element.parentNode;
             const input = val;
             console.log(val);
             
@@ -211,7 +217,7 @@ list.addEventListener("click", function(event){
             para.class = "text " + LINE;
             li.insertBefore(para, input);
             li.removeChild(input);
-            editBtn.textContent = 'edit';
+            element.textContent = 'edit';
             console.log(element.id);
             const data = {
                 title: input.value,
