@@ -95,7 +95,8 @@ document.addEventListener("keyup", function(event){
                 
             }
             postData("http://localhost:8080/items", todoItem)
-            addToDo(toDo, LIST.length+1, done);
+            addToDo(toDo, LIST[LIST.length+1].id, done);
+            
         }
         input.value = "";
     }
