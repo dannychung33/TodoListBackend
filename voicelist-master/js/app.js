@@ -22,7 +22,9 @@ function getLastTitle(){
 
 }
 
+
 const data = getDatabaseItems().then((data) => {
+    //location.reload();
     if(data){
         LIST = data;
         //id = LIST.length;
@@ -34,6 +36,7 @@ const data = getDatabaseItems().then((data) => {
 });
 
 function loadList(array){
+    
     let idList = [];
     let i = 0;
     array.forEach(function(item){
@@ -95,7 +98,13 @@ document.addEventListener("keyup", function(event){
                 
             }
             postData("http://localhost:8080/items", todoItem)
-            addToDo(toDo, LIST[LIST.length+1].id, done);
+            if(LIST.length == 0){
+                addToDo(toDo, LIST.length, done);
+            }
+            else{
+                addToDo(toDo, LIST[LIST.length+1].id, done);
+            }
+            
             
         }
         input.value = "";
